@@ -1,0 +1,27 @@
+name: PocketCam
+options:
+  bundleIdPrefix: com.pocket
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+targets:
+  PocketCam:
+    type: application
+    platform: iOS
+    sources:
+      - path: PocketCam
+        excludes:
+          - "App/Info.plist"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.pocket.cam
+        INFOPLIST_FILE: PocketCam/App/Info.plist
+        GENERATE_INFOPLIST_FILE: NO
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: ""
+        TARGETED_DEVICE_FAMILY: "1"
+        SWIFT_VERSION: "5.9"
+        IPHONEOS_DEPLOYMENT_TARGET: "17.0"
+        CURRENT_PROJECT_VERSION: "1"
+        MARKETING_VERSION: "0.1.0"
+        ENABLE_PREVIEWS: YES
