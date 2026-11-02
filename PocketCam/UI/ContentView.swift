@@ -63,7 +63,7 @@ struct ContentView: View {
                         .foregroundStyle(.white)
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
-                .disabled(!hasPermission || recorder.state == .preparing || recorder.state == .failed)
+                .disabled(startDisabled)
 
                 if case .failed(let message) = recorder.state {
                     Text("出错：\(message)")
@@ -100,6 +100,14 @@ struct ContentView: View {
 
     private var storageFraction: Double {
         Double(recorder.storedBytes) / Double(Config.maxStorageBytes)
+    }
+
+    private var startDisabled: Bool {
+        if !hasPermission { return true }
+        switch recorder.state {
+        case .preparing, .failed: return true
+        default: return false
+        }
     }
 
     private func timeString(_ t: TimeInterval) -> String {

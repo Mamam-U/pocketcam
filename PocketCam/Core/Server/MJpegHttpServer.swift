@@ -1,6 +1,7 @@
 import Foundation
 import Network
 import CoreImage
+import CoreMedia
 import Darwin
 
 /// 局域网监看：零依赖 HTTP 服务器（Network.framework）。
@@ -149,8 +150,10 @@ final class MJpegHttpServer: ObservableObject {
             self.queue.async {
                 self.streamConnections.append(connection)
                 connection.stateUpdateHandler = { [weak self] state in
-                    if state == .cancelled || state == .failed {
+                    switch state {
+                    case .cancelled, .failed:
                         self?.removeStream(connection)
+                    default: break
                     }
                 }
                 self.ensureTicker()
@@ -192,10 +195,9 @@ final class MJpegHttpServer: ObservableObject {
         guard let buffer = recorder?.latestSampleBuffer,
               let pixelBuffer = CMSampleBufferGetImageBuffer(buffer) else { return nil }
         let image = CIImage(cvPixelBuffer: pixelBuffer)
-        let options: [CIImageRepresentationOption: Any] = [.jpegQuality: 0.6]
         return ciContext.jpegRepresentation(of: image,
                                             colorSpace: CGColorSpaceCreateDeviceRGB(),
-                                            options: options)
+                                            options: [:])
     }
 
     // MARK: - 工具
@@ -220,7 +222,7 @@ final class MJpegHttpServer: ObservableObject {
                 let name = String(cString: interface.ifa_name)
                 if name == "en0" || name == "en1" {
                     var host = [CChar](repeating: 0, count: Int(INET6_ADDRSTRLEN))
-                    let addr = interface.ifa_addr.withMemoryRebound(to: sockaddr_in.self, capacity: 1) {
+                    var addr = interface.ifa_addr.withMemoryRebound(to: sockaddr_in.self, capacity: 1) {
                         $0.pointee.sin_addr
                     }
                     inet_ntop(AF_INET, &addr, &host, socklen_t(host.count))
