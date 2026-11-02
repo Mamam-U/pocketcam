@@ -1,8 +1,5 @@
 name: Build IPA
 
-# 触发方式：
-#   1) push 到 main 分支
-#   2) 或手动：GitHub 仓库页 → Actions → Build IPA → Run workflow
 on:
   push:
     branches: [main]
@@ -22,6 +19,7 @@ jobs:
 
       - name: Build unsigned app
         run: |
+          set -o pipefail
           xcodebuild -project PocketCam.xcodeproj \
             -scheme PocketCam \
             -configuration Release \
@@ -31,15 +29,25 @@ jobs:
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGN_ENTITLEMENTS="" \
-            build
+            build 2>&1 | tee build.log
+
+      - name: Upload build log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build.log
+          retention-days: 14
 
       - name: Package IPA
+        if: success()
         run: |
           mkdir -p Payload
           cp -R build/Build/Products/Release-iphoneos/PocketCam.app Payload/
           zip -r PocketCam.ipa Payload
 
       - name: Upload IPA
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: PocketCam-ipa
